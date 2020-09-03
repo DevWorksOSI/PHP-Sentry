@@ -239,6 +239,49 @@ class security
 	   // Return an array, use foreach
 	   return $data;
 	}
+	
+	/*
+	 * Check for updates using CuRL
+	 * if this version is out of date, we update
+	*/
+	private function check_update()
+	{
+	   $url = "https://control.microcms.org/version_check.php?id=2";
+	  
+	   $ch = curl_init();
+	   curl_setopt($ch, CURLOPT_URL, $url);
+           curl_setopt($ch, CURLOPT_HEADER, FALSE);
+           curl_setopt($ch, CURLOPT_NOBODY, FALSE); // remove body
+           curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+	   $content  = curl_exec($ch);
+	   $remote_version = trim($content);
+	   curl_close($ch);
+	   $local = '1.4.2';
+	   
+	     //$local_version = trim($local);
+	     if($local !== $remote_version)
+	     {
+	       $this->do_update();
+	     }
+	}
+	
+	/*
+	 * Download latest version
+	 * rename the old one
+	 * rename new to old
+	 * delete the old file
+	*/
+	private function do_update()
+	{
+	   $data = 'https://control.microcms.org/files/PHP_Sentry/sentry.php';
+	   $get_file = file_put_contents('core/sentry/security-new.php', $data);
+	   
+	   rename('core/sentry/security.php', 'core/sentry/security.php.bak');
+	   rename('core/sentry/security-new.php', 'core/sentry/security.php');
+	   
+	   // Delete the old version
+	   unlink('core/sentry/security.php.bak');
+	}
 }
 
 ?>
