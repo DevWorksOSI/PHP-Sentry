@@ -10,6 +10,7 @@ A Website Minuteman, Standing Tall, Vigilant and always on Duty. PHP Class Drive
  
 ## Using
 - Sentry is loaded in core/loader.php
--- Include core/loader.php in your index or header
--- Upload everything to your web root
--- Check PHP Logs
+- Include core/loader.php in your index or header
+- Upload everything to your web root
+- Check PHP Logs
+- If all is good, enjoy the peace of mind that PHP Sentry provides by keeping your domain secure.
