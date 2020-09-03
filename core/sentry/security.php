@@ -10,76 +10,81 @@ use database\db;
 
 class security
 {
-        /*
-         * httpbl_config()
-         * Get httpbl_KEY from config.php
-         * You key can be obtained from projecthoneypot.org
-        */
-	private function httpbl_config()
-	{
-		$this->httpbl_key = httpBL_KEY;
-	}
+   function __construct()
+   {
+     // Commen this out to turn off updates
+     $this->check_update();
+   }
+   
+   /*
+    * httpbl_config()
+    * Get httpbl_KEY from config.php
+    * You key can be obtained from projecthoneypot.org
+   */
+   private function httpbl_config()
+   {
+      $this->httpbl_key = httpBL_KEY;
+   }
 	
-	/*
-	 * redirect
-	 * usage; $security->redirect_to("location");
-	 * will exit on completion
-	*/
-	public function redirect_to($new_location)
-	{
-		header("Location: " . $new_location);
-		exit;
-	}
+   /*
+    * redirect
+    * usage; $security->redirect_to("location");
+    * will exit on completion
+   */
+   public function redirect_to($new_location)
+   {
+      header("Location: " . $new_location);
+      exit;
+   }
 	
-	/*
-	 * httpbl_check
-	 * gets the IP from get_real_ip()
-	 * checks it against dnsbl.httpbl.org
-	 * if it returns as a spammer, or harvester, ban it
-	 * Reporting source is HTTPBL
-	 * requires httpbl key from projecthoneypot.org
-	*/
-	public function httpbl_check()
-	{
-		// Initialize values
-		//setup();
-		$apikey = $this->httpbl_config();
+   /*
+    * httpbl_check
+    * gets the IP from get_real_ip()
+    * checks it against dnsbl.httpbl.org
+    * if it returns as a spammer, or harvester, ban it
+    * Reporting source is HTTPBL
+    * requires httpbl key from projecthoneypot.org
+   */
+   public function httpbl_check()
+   {
+      // Initialize values
+      $apikey = $this->httpbl_config();
 		
-		// IP to test from get_real_ip()
-		$ip = $this->get_real_ip();
+      // IP to test from get_real_ip()
+      $ip = $this->get_real_ip();
 		
-		// build the lookup DNS query
-		// Example : for '127.9.1.2' you should query 'abcdefghijkl.2.1.9.127.dnsbl.httpbl.org'
-		$lookup = $apikey . '.' . implode('.', array_reverse(explode ('.', $ip ))) . '.dnsbl.httpbl.org';
+      // build the lookup DNS query
+      // Example : for '127.9.1.2' you should query 'abcdefghijkl.2.1.9.127.dnsbl.httpbl.org'
+      $lookup = $apikey . '.' . implode('.', array_reverse(explode ('.', $ip ))) . '.dnsbl.httpbl.org';
 		
-		// check query response
-		$result = explode( '.', gethostbyname($lookup));
+      // check query response
+      $result = explode( '.', gethostbyname($lookup));
 		
-		if ($result[0] == 127)
-		{
-			// query successful !
-			$activity = $result[1];
-			$threat = $result[2];
-			$type = $result[3];
+      if ($result[0] == 127)
+      {
+         // query successful !
+         $activity = $result[1];
+         $threat = $result[2];
+         $type = $result[3];
+         
+         $source = 'HTTPBL';
 			
-			$source = 'HTTPBL';
-			
-			if ($type & 0) $typemeaning .= 'Search Engine, ';
-			if ($type & 1) $typemeaning .= 'Suspicious, ';
-			if ($type & 2) $typemeaning .= 'Harvester, ';
-			if ($type & 4) $typemeaning .= 'Comment Spammer, ';
-			$typemeaning = trim($typemeaning,', ');
-			
-			if ($type >= 4 && $threat > 0)
-			{
-				$this->ban_ip($ip, $source);
-			}
-			if($type < 4 && $threat > 20)
-			{
-				$this->ban_ip($ip, $source);
-			}
-		}
-	}
+         if ($type & 0) $typemeaning .= 'Search Engine, ';
+         if ($type & 1) $typemeaning .= 'Suspicious, ';
+         if ($type & 2) $typemeaning .= 'Harvester, ';
+         if ($type & 4) $typemeaning .= 'Comment Spammer, ';
+         $typemeaning = trim($typemeaning,', ');
+         
+         if ($type >= 4 && $threat > 0)
+         {
+            $this->ban_ip($ip, $source);
+	 }
+	 if($type < 4 && $threat > 20)
+	 {
+	    $this->ban_ip($ip, $source);
+	 }
+      }
+   }
 	
 	/*
 	 * Get Real IP
